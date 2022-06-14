@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Keyboard
+} from 'react-native';
+import LottieView from 'lottie-react-native';
 
 import Picker from './src/components/Picker';
 import api from './src/services/api';
+import coin3d from './src/assets/animations/coin-3d.json';
 
 export default function App() {
   const [currencies, setCurrencies] = useState([]);
@@ -14,7 +24,11 @@ export default function App() {
   const [initialCurrencyValue, setInitialCurrencyValue] = useState(null);
   const [convertedCurrencyValue, setConvertedCurrencyValue] = useState(0);
 
+  const animation = useRef(null);
+
   useEffect(() => {
+    animation.current?.play();
+
     async function loadMoedas() {
       const response = await api.get('all');
 
@@ -47,7 +61,16 @@ export default function App() {
     setConvertedCurrencyValue(`R$ ${result.toFixed(2)}`);
     setInitialCurrencyValue(currencyBValue);
 
+    animation.current?.stop();
     Keyboard.dismiss();
+  }
+
+  function clear() {
+    setConvertedCurrencyValue(0);
+    setCurrencyBValue(0);
+    setInitialCurrencyValue(0);
+
+    animation.current?.play();
   }
 
   if (loading) {
@@ -67,18 +90,22 @@ export default function App() {
           <Text style={styles.title}>
             Selecione sua moeda
           </Text>
-          <Picker currencies={currencies} onChange={(value) => setSelectedCurrency(value)} />
+          <Picker
+            currencies={currencies}
+            onChange={(value) => setSelectedCurrency(value)}
+          />
         </View>
 
         <View style={styles.valueArea}>
           <Text style={styles.title}>
-            Digite um valor para converter em (R$)
+            Digite um valor para converter em ( R$ )
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="EX: 100"
+            placeholder="Ex: 130"
             keyboardType='numeric'
             onChangeText={(value) => setCurrencyBValue(value)}
+            value={currencyBValue !== 0 ? `${currencyBValue}` : ''}
           />
         </View>
 
@@ -86,19 +113,43 @@ export default function App() {
           <Text style={styles.textButton}>Converter</Text>
         </TouchableOpacity>
 
-        {convertedCurrencyValue !== 0 && (
-          <View style={styles.resultArea}>
-            <Text style={styles.convertedValue}>
-              {initialCurrencyValue} USD
-            </Text>
-            <Text style={[styles.convertedValue, { fontSize: 18, margin: 5 }]}>
-              Corresponde a
-            </Text>
-            <Text style={styles.convertedValue}>
-              {convertedCurrencyValue}
-            </Text>
-          </View>
-        )}
+        {convertedCurrencyValue !== 0 ?
+          (
+            <>
+              <View style={styles.resultArea}>
+                <Text style={styles.convertedValue}>
+                  {initialCurrencyValue} USD
+                </Text>
+                <Text style={
+                  [styles.convertedValue, { fontSize: 18, margin: 5 }]
+                }>
+                  Corresponde a
+                </Text>
+                <Text style={styles.convertedValue}>
+                  {convertedCurrencyValue}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.buttonArea, , { backgroundColor: '#357C3C' }]}
+                onPress={clear}
+              >
+                <Text style={styles.textButton}>Novo valor</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.animationArea}>
+              <LottieView
+                autoPlay
+                ref={animation}
+                style={{
+                  width: 300,
+                  height: 300,
+                  backgroundColor: '#f2f2f2',
+                }}
+                source={coin3d}
+              />
+            </View>
+          )}
 
       </View>
     );
@@ -119,6 +170,7 @@ const styles = StyleSheet.create({
   },
   coinArea: {
     width: '90%',
+    height: 90,
     backgroundColor: '#FFF',
     paddingTop: 9,
     borderTopLeftRadius: 9,
@@ -162,11 +214,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
   },
+  animationArea: {
+    width: '90%',
+    height: 350,
+    marginTop: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   resultArea: {
     width: '90%',
     backgroundColor: '#FFF',
     marginTop: 35,
-    borderRadius: 5,
+    borderTopLeftRadius: 5,
+    borderBottomRightRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 25,
