@@ -22,7 +22,7 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 ## 📱 Projeto
 
-Este é um app para conversão de valores de outras moedas em real.
+Este é um app para conversão de valores de outras moedas em real.<br>
 Usei o Lottie para as animações e o axios para conectar com a api de valores das moedas.
 
 
